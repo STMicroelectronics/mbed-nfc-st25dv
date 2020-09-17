@@ -112,30 +112,40 @@ public:
         int ret;
         tr_debug("start_session\r\n");
         if(_is_session_started) {
-          delegate()->on_session_started(true);
+            event_queue()->call([this] {
+                delegate()->on_session_started(true);
+              });
         }
 
         ret = open_session(force);
         if(ret != 0) {
-          delegate()->on_session_started(false);
+            event_queue()->call([this] {
+                delegate()->on_session_started(false);
+              });
         } else {
-          _is_session_started = true;
-          delegate()->on_session_started(true);
+            _is_session_started = true;
+            event_queue()->call([this] {
+                delegate()->on_session_started(true);
+              });
         }
     }
 
     /** @see NFCEEPROMDriver::end_session
      */
     virtual void end_session() {
-      int ret;
-      tr_debug("end_session\r\n");
+        int ret;
+        tr_debug("end_session\r\n");
 
-      ret = close_session();
-      if(ret != 0) {
-        delegate()->on_session_ended(false);
+        ret = close_session();
+        if(ret != 0) {
+            event_queue()->call([this] {
+                delegate()->on_session_ended(false);
+              });
       } else {
-        _is_session_started = false;
-        delegate()->on_session_ended(true);
+            _is_session_started = false;
+            event_queue()->call([this] {
+                delegate()->on_session_ended(true);
+              });
       }
     }
 
@@ -146,16 +156,22 @@ public:
         tr_debug("read_bytes\r\n");
 
         if (address > _ndef_size) {
-            delegate()->on_bytes_read(0);
+            event_queue()->call([this] {
+                delegate()->on_bytes_read(0);
+              });
             return;
         }
 
         ret = read_data(address, bytes, count);
         tr_debug("read_bytes read_data ret =%d count=%d bytes=%s\r\n", ret, count, bytes);
         if(ret != 0) {
-            delegate()->on_bytes_read(0);
+            event_queue()->call([this] {
+                delegate()->on_bytes_read(0);
+              });
         } else {
-            delegate()->on_bytes_read(count);
+            event_queue()->call([this, count] {
+                delegate()->on_bytes_read(count);
+              });
         }
     }
 
@@ -165,7 +181,9 @@ public:
         int ret;
         tr_debug("write_bytes\r\n");
         if (address > _ndef_size) {
-            delegate()->on_bytes_written(0);
+            event_queue()->call([this] {
+                delegate()->on_bytes_written(0);
+              });
             tr_error("write_bytes error (address > _ndef_size)\r\n");
             return;
         }
@@ -173,9 +191,13 @@ public:
         ret = write_data(address, bytes, count);
         tr_debug("write_bytes write_data ret =%d count=%d bytes=%s\r\n", ret, count, bytes);
         if(ret != 0) {
-            delegate()->on_bytes_written(0);
+            event_queue()->call([this] {
+                delegate()->on_bytes_written(0);
+              });
         } else {
-            delegate()->on_bytes_written(count);
+            event_queue()->call([this, count] {
+                delegate()->on_bytes_written(count);
+              });
         }
     }
 
@@ -185,16 +207,22 @@ public:
         int ret;
         tr_debug("write_size (count=%d)\r\n", count);
         if (!_is_session_started) {
-            delegate()->on_size_written(false);
+            event_queue()->call([this] {
+                delegate()->on_size_written(false);
+              });
             return;
         }
         _ndef_size = count;
 
         ret = set_size(count);
         if(ret != 0) {
-            delegate()->on_size_written(false);
+            event_queue()->call([this] {
+                delegate()->on_size_written(false);
+              });
         } else {
-            delegate()->on_size_written(true);
+            event_queue()->call([this] {
+                delegate()->on_size_written(true);
+              });
         }
     }
 
@@ -204,15 +232,21 @@ public:
         int ret;
         tr_debug("read_size\r\n");
         if (!_is_session_started) {
-            delegate()->on_size_read(false, 0);
+            event_queue()->call([this] {
+                delegate()->on_size_read(false, 0);
+              });
             return;
         }
 
         ret = get_size();
         if(ret != 0) {
-            delegate()->on_size_read(false, 0);
+            event_queue()->call([this] {
+                delegate()->on_size_read(false, 0);
+              });
         } else {
-            delegate()->on_size_read(true, _ndef_size);
+            event_queue()->call([this] {
+                delegate()->on_size_read(true, _ndef_size);
+              });
         }
         tr_debug("read_size _ndef_size=%d\r\n", _ndef_size);
     }
