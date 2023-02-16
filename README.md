@@ -1,4 +1,9 @@
 # ST25DV Driver
+WARNING!!!
+
+This repository is now deprecated and not maintained any more!
+
+WARNING!!!
 
 This is a driver needed by `NFCEEPROOM` constructor for the ST25DV NFC chip.
 
